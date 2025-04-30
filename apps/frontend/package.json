@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
+    "@apollo/client": "^3.13.8",
     "@refinedev/antd": "^5.44.0",
     "@refinedev/cli": "^2.16.21",
     "@refinedev/core": "^4.47.1",
@@ -13,7 +14,7 @@
     "@refinedev/kbar": "^1.3.6",
     "@refinedev/react-router": "^1.0.0",
     "antd": "^5.17.0",
-    "graphql": "^15.5.3",
+    "graphql": "^15.10.1",
     "graphql-request": "^5.2.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

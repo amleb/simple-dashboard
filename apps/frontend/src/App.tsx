@@ -14,6 +14,8 @@ import { App as AntdApp } from "antd";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 
+import { SQSList } from './components/sqs';
+
 const API_URL = "https://your-graphql-url/graphql";
 
 const client = new GraphQLClient(API_URL);
@@ -21,36 +23,10 @@ const gqlDataProvider = dataProvider(client);
 
 function App() {
   return (
-    <BrowserRouter>
-      <GitHubBanner />
-      <RefineKbarProvider>
-        <ColorModeContextProvider>
-          <AntdApp>
-            <DevtoolsProvider>
-              <Refine
-                dataProvider={gqlDataProvider}
-                notificationProvider={useNotificationProvider}
-                routerProvider={routerBindings}
-                options={{
-                  syncWithLocation: true,
-                  warnWhenUnsavedChanges: true,
-                  useNewQueryKeys: true,
-                  projectId: "zRJhU8-VYNebE-SDSOWZ",
-                }}
-              >
-                <Routes>
-                  <Route index element={<WelcomePage />} />
-                </Routes>
-                <RefineKbar />
-                <UnsavedChangesNotifier />
-                <DocumentTitleHandler />
-              </Refine>
-              <DevtoolsPanel />
-            </DevtoolsProvider>
-          </AntdApp>
-        </ColorModeContextProvider>
-      </RefineKbarProvider>
-    </BrowserRouter>
+      <div className="h-screen bg-base-200 p-4">
+          <h1 className="text-2xl font-bold mb-4">AWS Dashboard</h1>
+          <SQSList />
+      </div>
   );
 }
 
