@@ -19,10 +19,6 @@ const API_URL = "https://your-graphql-url/graphql";
 const client = new GraphQLClient(API_URL);
 const gqlDataProvider = dataProvider(client);
 
-import { SharedTestType } from '@shared/index';
-
-const Foo: SharedTestType = 'test';
-
 function App() {
   return (
     <BrowserRouter>
