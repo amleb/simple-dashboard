@@ -7,6 +7,18 @@
   ],
   "scripts": {
     "dev:frontend": "npm --workspace apps/frontend run dev",
-    "build:frontend": "npm --workspace apps/frontend run build"
+    "build:frontend": "npm --workspace apps/frontend run build",
+    "build:backend": "npm --workspace apps/backend run build",
+    "format:backend": "npm --workspace apps/backend run format",
+    "start:backend": "npm --workspace apps/backend run start -- -b swc",
+    "start:dev:backend": "npm --workspace apps/backend run start:dev -- -b swc",
+    "start:debug:backend": "npm --workspace apps/backend run start:debug",
+    "start:prod:backend": "npm --workspace apps/backend run start:prod",
+    "lint:backend": "npm --workspace apps/backend run lint",
+    "test:backend": "npm --workspace apps/backend run test",
+    "test:watch:backend": "npm --workspace apps/backend run test:watch",
+    "test:cov:backend": "npm --workspace apps/backend run test:cov",
+    "test:debug:backend": "npm --workspace apps/backend run test:debug",
+    "test:e2e:backend": "npm --workspace apps/backend run test:e2e"
   }
 }
