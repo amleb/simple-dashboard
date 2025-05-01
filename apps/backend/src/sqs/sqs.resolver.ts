@@ -1,6 +1,6 @@
-import { Resolver, Query, Args } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { SqsService } from './sqs.service';
-import { SqsQueue } from './sqs-queue.model';
+import { CreateSqsQueueInput, SqsQueue } from './sqs-queue.model';
 
 @Resolver(() => SqsQueue)
 export class SqsResolver {
@@ -13,5 +13,13 @@ export class SqsResolver {
     }
 
     return this.sqsService.listQueues(region);
+  }
+
+  @Mutation(() => SqsQueue)
+  async createSqsQueue(
+    @Args('region') region: string,
+    @Args('input') input: CreateSqsQueueInput,
+  ): Promise<SqsQueue> {
+    return this.sqsService.createQueue(region, input);
   }
 }

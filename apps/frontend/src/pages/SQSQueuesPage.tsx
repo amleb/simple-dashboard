@@ -4,6 +4,7 @@ import { List } from "@refinedev/antd";
 import { Table } from "antd";
 import type { TableProps } from "antd";
 import { useRegion } from '../contexts/RegionContext';
+import { useNavigate } from "react-router-dom";
 
 type SqsQueue = {
     id: string;
@@ -12,6 +13,7 @@ type SqsQueue = {
 };
 
 const SQSQueuesPage: React.FC = () => {
+    const navigate = useNavigate();
     const {region, } = useRegion();
     const { tableProps } = useTable<SqsQueue>({
         resource: "sqsQueues",
@@ -41,6 +43,12 @@ const SQSQueuesPage: React.FC = () => {
     return (
         <List title="SQS Queues">
             <Table {...tableProps} columns={columns} rowKey="id" />
+            <button
+                onClick={() => navigate("/sqs/create")}
+                className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+                New Queue
+            </button>
         </List>
     );
 };

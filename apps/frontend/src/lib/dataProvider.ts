@@ -1,5 +1,7 @@
 import { DataProvider } from "@refinedev/core";
-import { Client } from "@urql/core";
+import { Client, createRequest } from "@urql/core";
+import { GraphQLMap } from '../graphql/graphqlMap';
+import { pipe, toPromise } from "wonka";
 
 const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -60,9 +62,31 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
         };
     },
 
-    // Add create/update/delete only if needed
-    create: async () => {
-        throw new Error("create not implemented");
+    create: async ({ resource, variables, meta }) => {
+        const map = GraphQLMap[resource]?.create;
+
+        if (!map) {
+            throw new Error(`Create operation not defined for resource: ${resource}`);
+        }
+
+        const region = meta?.region;
+        const request = createRequest(map.mutation, {
+            region,
+            input: variables,
+        });
+
+        const result = await pipe(
+            client.executeMutation(request),
+            toPromise,
+        );
+
+        if (result.error) {
+            throw result.error;
+        }
+
+        return {
+            data: result.data?.[map.responseKey],
+        };
     },
 
     update: async () => {

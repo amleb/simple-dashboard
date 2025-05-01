@@ -17,3 +17,9 @@ export class SqsQueuesWhereInput {
   @Field({ nullable: true })
   region?: string;
 }
+
+@InputType()
+export class CreateSqsQueueInput {
+  @Field()
+  name: string;
+}

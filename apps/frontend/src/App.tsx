@@ -11,6 +11,7 @@ import { DocumentTitleHandler, UnsavedChangesNotifier } from '@refinedev/react-r
 import { ThemeProvider } from './contexts/ThemeContext';
 import { graphqlDataProvider } from "./lib/dataProvider";
 import { createUrqlClient } from "./lib/urqlClient";
+import { CreateSqsQueue } from './pages/CreateSqsQueue';
 
 const region = localStorage.getItem("region") || "us-east-1";
 const client = createUrqlClient(region);
@@ -47,6 +48,7 @@ const App: React.FC = () => {
                                     path="sqs-queues"
                                     element={<SQSQueuesPage/>}
                                 />
+                                <Route path="/sqs/create" element={<CreateSqsQueue />} />
                                 <Route path="*" element={<ErrorComponent/>}/>
                             </Routes>
                             <UnsavedChangesNotifier/>
