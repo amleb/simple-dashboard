@@ -1,27 +1,30 @@
 import { Refine } from "@refinedev/core";
 import { ErrorComponent, ThemedLayoutV2, useNotificationProvider, } from "@refinedev/antd";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ApolloProvider } from "@apollo/client";
 import WelcomePage from "./pages/WelcomePage";
 import S3BucketsPage from "./pages/S3BucketsPage";
 import SQSQueuesPage from "./pages/SQSQueuesPage";
 import { RegionProvider } from "./contexts/RegionContext";
-import { client } from './lib/apollo';
 import React from 'react';
 import { TopBar } from './components/TopBar';
 import { DocumentTitleHandler, UnsavedChangesNotifier } from '@refinedev/react-router';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { graphqlDataProvider } from "./lib/dataProvider";
+import { createUrqlClient } from "./lib/urqlClient";
+
+const region = localStorage.getItem("region") || "us-east-1";
+const client = createUrqlClient(region);
 
 const App: React.FC = () => {
-    return (<ApolloProvider client={client}>
-        <ThemeProvider>
+    return (<ThemeProvider>
             <RegionProvider>
                 <BrowserRouter>
                     <Refine
+                        dataProvider={graphqlDataProvider(client)}
                         resources={[{
                             name: "buckets", list: "/buckets", meta: {label: "S3 Buckets"},
                         }, {
-                            name: "queues", list: "/queues", meta: {label: "SQS Queues"},
+                            name: "sqsQueues", list: "/sqs-queues", meta: {label: "SQS Queues"},
                         },]}
                         notificationProvider={useNotificationProvider}
                         options={{
@@ -41,7 +44,7 @@ const App: React.FC = () => {
                                     element={<S3BucketsPage/>}
                                 />
                                 <Route
-                                    path="queues"
+                                    path="sqs-queues"
                                     element={<SQSQueuesPage/>}
                                 />
                                 <Route path="*" element={<ErrorComponent/>}/>
@@ -52,8 +55,7 @@ const App: React.FC = () => {
                     </Refine>
                 </BrowserRouter>
             </RegionProvider>
-        </ThemeProvider>
-    </ApolloProvider>);
+        </ThemeProvider>);
 };
 
 export default App;

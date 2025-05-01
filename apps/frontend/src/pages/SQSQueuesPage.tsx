@@ -1,39 +1,47 @@
-import React, { useEffect, useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import React from "react";
+import { useTable } from "@refinedev/antd";
+import { List } from "@refinedev/antd";
+import { Table } from "antd";
+import type { TableProps } from "antd";
+import { useRegion } from '../contexts/RegionContext';
 
-const GET_SQS_QUEUES = gql`
-  query GetSQSQueues {
-    sqsQueues {
-      name
-      region
-    }
-  }
-`;
+type SqsQueue = {
+    id: string;
+    name: string;
+    region: string;
+};
 
 const SQSQueuesPage: React.FC = () => {
-    const { data, loading, error } = useQuery(GET_SQS_QUEUES);
-    const [queues, setQueues] = useState<any[]>([]);
-
-    useEffect(() => {
-        if (data) {
-            setQueues(data.sqsQueues);
+    const {region, } = useRegion();
+    const { tableProps } = useTable<SqsQueue>({
+        resource: "sqsQueues",
+        meta: {
+            region
         }
-    }, [data]);
+    });
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error loading SQS queues</div>;
+    const columns: TableProps<SqsQueue>["columns"] = [
+        {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+        },
+        {
+            title: "Queue Name",
+            dataIndex: "name",
+            key: "name",
+        },
+        {
+            title: "Region",
+            dataIndex: "region",
+            key: "region",
+        },
+    ];
 
     return (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold">SQS Queues</h2>
-            <ul className="mt-4">
-                {queues.map((queue) => (
-                    <li key={queue.name} className="py-2">
-                        <strong>{queue.name}</strong> - {queue.region}
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <List title="SQS Queues">
+            <Table {...tableProps} columns={columns} rowKey="id" />
+        </List>
     );
 };
 

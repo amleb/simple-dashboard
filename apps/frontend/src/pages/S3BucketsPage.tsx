@@ -1,40 +1,48 @@
-import React, { useEffect, useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import React from "react";
+import { useTable } from "@refinedev/antd";
+import { List } from "@refinedev/antd";
+import { Table } from "antd";
+import type { TableProps } from "antd";
+import { useRegion } from '../contexts/RegionContext';
 
-const GET_S3_BUCKETS = gql`
-  query GetS3Buckets {
-    s3Buckets {
-      name
-      region
-    }
-  }
-`;
+type SqsQueue = {
+    id: string;
+    name: string;
+    region: string;
+};
 
-const S3BucketsPage: React.FC = () => {
-    const { data, loading, error } = useQuery(GET_S3_BUCKETS);
-    const [buckets, setBuckets] = useState<any[]>([]);
-
-    useEffect(() => {
-        if (data) {
-            setBuckets(data.s3Buckets);
+const SQSQueuesPage: React.FC = () => {
+    const {region, } = useRegion();
+    const { tableProps } = useTable<SqsQueue>({
+        resource: "sqsQueues",
+        meta: {
+            region
         }
-    }, [data]);
+    });
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error loading S3 buckets</div>;
+    const columns: TableProps<SqsQueue>["columns"] = [
+        {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+        },
+        {
+            title: "Bucket Name",
+            dataIndex: "name",
+            key: "name",
+        },
+        {
+            title: "Region",
+            dataIndex: "region",
+            key: "region",
+        },
+    ];
 
     return (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold">S3 Buckets</h2>
-            <ul className="mt-4">
-                {buckets.map((bucket) => (
-                    <li key={bucket.name} className="py-2">
-                        <strong>{bucket.name}</strong> - {bucket.region}
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <List title="S3 Buckets">
+            <Table {...tableProps} columns={columns} rowKey="id" />
+        </List>
     );
 };
 
-export default S3BucketsPage;
+export default SQSQueuesPage;

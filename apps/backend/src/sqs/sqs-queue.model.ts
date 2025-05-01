@@ -1,7 +1,19 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, ID, InputType } from '@nestjs/graphql';
 
 @ObjectType()
 export class SqsQueue {
+  @Field(() => ID)
+  id: string;
+
   @Field()
-  url: string;
+  name: string;
+
+  @Field()
+  region: string;
+}
+
+@InputType()
+export class SqsQueuesWhereInput {
+  @Field({ nullable: true })
+  region?: string;
 }
