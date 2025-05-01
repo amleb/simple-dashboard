@@ -1,33 +1,51 @@
-import { GitHubBanner, Refine, WelcomePage } from "@refinedev/core";
-import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+import { Refine } from "@refinedev/core";
+import {
+    ErrorComponent,
+} from "@refinedev/antd";
 
-import { useNotificationProvider } from "@refinedev/antd";
-import "@refinedev/antd/dist/reset.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ApolloProvider } from "@apollo/client";
+import WelcomePage from "./pages/WelcomePage";
+import S3BucketsPage from "./pages/S3BucketsPage";
+import SQSQueuesPage from "./pages/SQSQueuesPage";
+import { RegionProvider } from "./contexts/RegionContext";
+import { CustomLayout } from "./components/CustomLayout";
 
-import dataProvider, { GraphQLClient } from "@refinedev/graphql";
-import routerBindings, {
-  DocumentTitleHandler,
-  UnsavedChangesNotifier,
-} from "@refinedev/react-router";
-import { App as AntdApp } from "antd";
-import { BrowserRouter, Route, Routes } from "react-router";
-import { ColorModeContextProvider } from "./contexts/color-mode";
+import { client } from './lib/apollo';
+import React from 'react';
 
-import { SQSList } from './components/sqs';
-
-const API_URL = "https://your-graphql-url/graphql";
-
-const client = new GraphQLClient(API_URL);
-const gqlDataProvider = dataProvider(client);
-
-function App() {
-  return (
-      <div className="h-screen bg-base-200 p-4">
-          <h1 className="text-2xl font-bold mb-4">AWS Dashboard</h1>
-          <SQSList />
-      </div>
-  );
-}
+const App: React.FC = () => {
+    return (<ApolloProvider client={client}>
+        <RegionProvider>
+            <BrowserRouter>
+                <Refine
+                    resources={[{
+                        name: "buckets", list: "/buckets", meta: {label: "S3 Buckets"},
+                    }, {
+                        name: "queues", list: "/queues", meta: {label: "SQS Queues"},
+                    },]}
+                >
+                    <CustomLayout>
+                        <Routes>
+                            <Route
+                                path="/"
+                                element={<WelcomePage/>}
+                            />
+                            <Route
+                                path="buckets"
+                                element={<S3BucketsPage/>}
+                            />
+                            <Route
+                                path="queues"
+                                element={<SQSQueuesPage/>}
+                            />
+                            <Route path="*" element={<ErrorComponent/>}/>
+                        </Routes>
+                    </CustomLayout>
+                </Refine>
+            </BrowserRouter>
+        </RegionProvider>
+    </ApolloProvider>);
+};
 
 export default App;
