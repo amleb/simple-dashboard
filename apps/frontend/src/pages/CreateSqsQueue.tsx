@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useRegion } from '../contexts/RegionContext';
 import { graphqlDataProvider } from '../lib/dataProvider';
 import { createUrqlClient } from '../lib/urqlClient';
+import { FieldValues } from "react-hook-form";
 
 
 export const CreateSqsQueue = () => {
@@ -14,7 +15,7 @@ export const CreateSqsQueue = () => {
     const {region, } = useRegion();
     const client = createUrqlClient(region);
 
-    const onSubmit = async (data: any) => {
+    const onSubmit = async (data: FieldValues) => {
         try {
             const provider = graphqlDataProvider(client);
             await provider.create({ resource: "sqsQueues", variables: { name: data.name }, meta: { region } });
