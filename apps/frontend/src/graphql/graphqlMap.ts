@@ -1,8 +1,9 @@
+type GraphQLActionType = 'create' | 'delete';
+
 type GraphQLMapType = {
     [key: string]: {
-        create: {
-            mutation: string;
-            responseKey: string;
+        [key in GraphQLActionType]?: {
+            mutation: string; responseKey: string;
         };
     };
 };
@@ -18,11 +19,16 @@ export const GraphQLMap: GraphQLMapType = {
             region
           }
         }
-      `,
-            responseKey: "createSqsQueue",
+      `, responseKey: "createSqsQueue",
         },
-    },
-    s3Buckets: {
+        delete: {
+            mutation: `
+        mutation DeleteSqsQueue($region: String!, $queueUrl: String!) {
+          deleteSqsQueue(region: $region, queueUrl: $queueUrl)
+        }
+      `, responseKey: "deleteSqsQueue",
+        },
+    }, s3Buckets: {
         create: {
             mutation: `
         mutation CreateS3Bucket($region: String!, $input: CreateS3BucketInput!) {
@@ -32,8 +38,7 @@ export const GraphQLMap: GraphQLMapType = {
             region
           }
         }
-      `,
-            responseKey: "createS3Bucket",
+      `, responseKey: "createS3Bucket",
         },
     },
 };

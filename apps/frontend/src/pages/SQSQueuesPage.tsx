@@ -1,10 +1,10 @@
 import React from "react";
-import { useTable } from "@refinedev/antd";
-import { List } from "@refinedev/antd";
-import { Table } from "antd";
-import type { TableProps } from "antd";
+import { List, useTable } from "@refinedev/antd";
+import { Button, Popconfirm, Space, Table } from "antd";
 import { useRegion } from '../contexts/RegionContext';
 import { useNavigate } from "react-router-dom";
+import { DeleteOutlined } from '@ant-design/icons';
+import { useDelete } from '@refinedev/core';
 
 type SqsQueue = {
     id: string;
@@ -22,33 +22,48 @@ const SQSQueuesPage: React.FC = () => {
         }
     });
 
-    const columns: TableProps<SqsQueue>["columns"] = [
-        {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-        },
-        {
-            title: "Queue Name",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "Region",
-            dataIndex: "region",
-            key: "region",
-        },
-    ];
+    const { mutate: deleteOne } = useDelete();
+
+    const handleDelete = (id: string) => {
+        deleteOne({
+            resource: "sqsQueues",
+            id,
+            meta: { region }
+        });
+    };
 
     return (
         <List title="SQS Queues">
-            <Table {...tableProps} columns={columns} rowKey="id" />
-            <button
-                onClick={() => navigate("/sqs/create")}
-                className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-                New Queue
-            </button>
+            <Space>
+                <Button
+                    type="primary"
+                    onClick={() => navigate("/sqs/create")}
+                >
+                    New Queue
+                </Button>
+            </Space>
+            <Table {...tableProps} rowKey="id">
+                <Table.Column dataIndex="id" title="Queue Name" />
+                <Table.Column dataIndex="name" title="Queue URL" />
+                <Table.Column
+                    title="Actions"
+                    render={(_, record) => (
+                        <Popconfirm
+                            title="Are you sure to delete this queue?"
+                            onConfirm={() => handleDelete(record.id)}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button
+                                type="primary"
+                                danger
+                                icon={<DeleteOutlined />}
+                            >
+                            </Button>
+                        </Popconfirm>
+                    )}
+                />
+            </Table>
         </List>
     );
 };

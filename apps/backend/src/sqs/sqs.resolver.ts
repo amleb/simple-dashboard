@@ -22,4 +22,12 @@ export class SqsResolver {
   ): Promise<SqsQueue> {
     return this.sqsService.createQueue(region, input);
   }
+
+  @Mutation(() => Boolean)
+  async deleteSqsQueue(
+    @Args('region') region: string,
+    @Args('queueUrl') queueUrl: string,
+  ): Promise<boolean> {
+    return this.sqsService.deleteQueue(region, queueUrl);
+  }
 }

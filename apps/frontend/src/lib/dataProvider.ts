@@ -1,14 +1,71 @@
-import { DataProvider } from "@refinedev/core";
 import { Client, createRequest } from "@urql/core";
 import { GraphQLMap } from '../graphql/graphqlMap';
 import { pipe, toPromise } from "wonka";
+
+interface DataProviderResponse<T> {
+    data: T;
+    total?: number;
+}
+
+interface ResourceParams<TVariables = any> {
+    resource: string;
+    meta?: {
+        fields?: string[]; region?: string;
+    };
+    variables?: TVariables;
+    id?: string;
+}
+
+interface GraphQLDataProvider {
+    getList: (params: ResourceParams) => Promise<DataProviderResponse<any[]>>;
+    getOne: (params: ResourceParams) => Promise<DataProviderResponse<any>>;
+    create: (params: ResourceParams) => Promise<DataProviderResponse<any>>;
+    deleteOne: (params: ResourceParams) => Promise<{
+        data: { id: string | undefined }
+    }>;
+    update: () => Promise<void>;
+    getApiUrl: () => string;
+    custom: () => Promise<void>;
+}
+
+interface GraphQLQueryResult<T = any> {
+    data: { [key: string]: T };
+    error?: Error;
+}
+
+interface GraphQLMutationResult<T = any> {
+    data: { [key: string]: T };
+    error?: Error;
+}
+
+async function executeGraphQLQuery<T>(client: Client, query: string, variables: Record<string, unknown>): Promise<GraphQLQueryResult<T>> {
+    const result = await client.query(query, variables).toPromise();
+
+    if (result.error) {
+        throw new Error(`GraphQL Error: ${result.error.message}`);
+    }
+
+    return result as GraphQLQueryResult<T>;
+}
+
+async function executeGraphQLMutation<T>(client: Client, mutation: string, variables: Record<string, unknown>): Promise<GraphQLMutationResult<T>> {
+    const request = createRequest(mutation, variables);
+    const result = await pipe(client.executeMutation(request), toPromise);
+
+    if (result.error) {
+        throw new Error(`GraphQL Error: ${result.error.message}`);
+    }
+
+    return result as GraphQLMutationResult<T>;
+}
+
 
 const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
 const defaultFields = ["id", "name", "region"];
 
-export const graphqlDataProvider = (client: Client): DataProvider => ({
-    getList: async ({ resource, meta }) => {
+export const graphqlDataProvider = (client: Client): GraphQLDataProvider => ({
+    getList: async ({resource, meta}) => {
         const fields = meta?.fields ?? defaultFields;
         const region = meta?.region;
 
@@ -20,24 +77,19 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
       }
     `;
 
-        const result = await client
-            .query(query, { region })
-            .toPromise();
-
-        if (result.error) {
-            throw result.error;
-        }
-
-        const data = result.data?.[resource] || [];
+        const result = await executeGraphQLQuery<any[]>(client, query, {region});
+        const data = result?.data[resource] || [];
 
         return {
-            data,
-            total: data.length,
+            data, total: data.length,
         };
+
+
     },
 
-    getOne: async ({ resource, id, meta }) => {
+    getOne: async ({resource, id, meta}) => {
         const fields = meta?.fields ?? defaultFields;
+        const region = meta?.region;
 
         const query = `
       query Get${capitalize(resource)}($id: ID!) {
@@ -47,13 +99,7 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
       }
     `;
 
-        const result = await client
-            .query(query, { id })
-            .toPromise();
-
-        if (result.error) {
-            throw result.error;
-        }
+        const result = await executeGraphQLQuery<any[]>(client, query, {region});
 
         const data = result.data?.[resource];
 
@@ -62,30 +108,44 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
         };
     },
 
-    create: async ({ resource, variables, meta }) => {
+    create: async ({resource, variables, meta}) => {
         const map = GraphQLMap[resource]?.create;
 
         if (!map) {
             throw new Error(`Create operation not defined for resource: ${resource}`);
         }
 
-        const region = meta?.region;
-        const request = createRequest(map.mutation, {
-            region,
-            input: variables,
-        });
-
-        const result = await pipe(
-            client.executeMutation(request),
-            toPromise,
+        const result = await executeGraphQLMutation<any>(
+            client,
+            map.mutation,
+            {
+                region: meta?.region,
+                input: variables,
+            }
         );
 
-        if (result.error) {
-            throw result.error;
-        }
 
         return {
             data: result.data?.[map.responseKey],
+        };
+    },
+
+    deleteOne: async ({resource, id, meta}) => {
+        const config = GraphQLMap[resource]?.delete;
+        if (!config) {
+            throw new Error(`Delete operation not defined for resource: ${resource}`);
+        }
+
+        await executeGraphQLMutation(client, config.mutation, {
+            region: meta?.region,
+            queueUrl: id,
+        });
+
+
+        return {
+            data: {
+                id,
+            },
         };
     },
 
@@ -93,11 +153,8 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
         throw new Error("update not implemented");
     },
 
-    deleteOne: async () => {
-        throw new Error("deleteOne not implemented");
-    },
-
     getApiUrl: () => "",
+
     custom: async () => {
         throw new Error("custom not implemented");
     },
