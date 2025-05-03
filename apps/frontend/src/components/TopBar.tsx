@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Layout, Select } from "antd";
+import { Button, Layout, Select, Space } from "antd";
 import { useRegion } from "../contexts/RegionContext";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -52,7 +52,7 @@ const IconMoonStars = () => (
   </svg>
 );
 
-export const TopBar: React.FC = (props) => {
+export const TopBar: React.FC = () => {
   const { region, setRegion } = useRegion();
   const { theme, toggleTheme } = useTheme();
 
@@ -69,16 +69,18 @@ export const TopBar: React.FC = (props) => {
       }}
     >
       <span style={{ marginRight: 8 }}>Region:</span>
-      <Select
-        style={{ width: 160 }}
-        value={region}
-        onChange={setRegion}
-        options={regions.map((r) => ({ value: r, label: r }))}
-      />
-      <Button
-        onClick={toggleTheme}
-        icon={theme === "light" ? <IconMoonStars /> : <IconSun />}
-      />
+      <Space>
+        <Select
+          style={{ width: 160 }}
+          value={region}
+          onChange={setRegion}
+          options={regions.map((r) => ({ value: r, label: r }))}
+        />
+        <Button
+          onClick={toggleTheme}
+          icon={theme === "light" ? <IconMoonStars /> : <IconSun />}
+        />
+      </Space>
     </Header>
   );
 };

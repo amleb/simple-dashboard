@@ -2,9 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "@refinedev/antd/dist/reset.css";
+import { App as AntdApp } from "antd";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>
+  <React.StrictMode>
+    <AntdApp>
+      <App />
+    </AntdApp>
+  </React.StrictMode>,
 );
