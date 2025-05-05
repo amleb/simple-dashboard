@@ -82,13 +82,13 @@ const useCreateResource = ({
   };
 
   return {
-    form: {
+    formProps: {
       form,
       onValuesChange,
       onFinish,
       ref: formRef,
     },
-    submit: {
+    submitProps: {
       loading: creatingResource,
       disabled: loading,
     },

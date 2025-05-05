@@ -9,14 +9,18 @@ import {
   Switch,
 } from "antd";
 import { useState } from "react";
-
 import useCreateResource from "../hooks/useCreateResource";
+import {
+  timeUnitsUpToHours,
+  timeUnitsUpToDays,
+} from "../lib/utils/convertToSeconds";
+import { UnitInput } from "../components/form/UnitInput";
+import validateRange from "../lib/utils/fieldRangeValidator";
 
 export const CreateSqsQueue = () => {
-  const [selectedType] = useState("standard");
   const [isFifo, setIsFifo] = useState(false);
 
-  const { form, submit } = useCreateResource({
+  const { formProps, submitProps } = useCreateResource({
     resourceName: "SQS Queue",
     redirectTo: "/sqs-queues",
     apiResourceName: "sqsQueues",
@@ -24,23 +28,18 @@ export const CreateSqsQueue = () => {
 
   const onFifoChange = (e: boolean) => {
     setIsFifo(e);
-    const currentName = form.form.getFieldValue("queueName");
+    const currentName = formProps.form.getFieldValue("name");
     if (e && !currentName.endsWith(".fifo")) {
-      form.form.setFieldsValue({ queueName: `${currentName}.fifo` });
+      formProps.form.setFieldsValue({ queueName: `${currentName}.fifo` });
     } else if (!e && currentName.endsWith(".fifo")) {
-      form.form.setFieldsValue({
+      formProps.form.setFieldsValue({
         queueName: currentName.replace(/\.fifo$/, ""),
       });
     }
   };
 
   const getPlaceholder = () => {
-    switch (selectedType) {
-      case "standard":
-        return "QueueName";
-      case "fifo":
-        return "QueueName.fifo";
-    }
+    return isFifo ? "QueueName.fifo" : "QueueName";
   };
 
   const layout = {};
@@ -48,16 +47,24 @@ export const CreateSqsQueue = () => {
   return (
     <Form
       {...layout}
-      {...form}
+      {...formProps}
       name="control-hooks"
       labelWrap
       style={{ maxWidth: 1200 }}
+      initialValues={{
+        type: false,
+        maximumMessageSize: 256,
+        receiveMessageWaitTimeSeconds: 0,
+        contentBasedDeduplication: false,
+        deduplicationScope: "messageGroup",
+        fifoThroughputLimit: "perQueue",
+      }}
     >
-      <Spin spinning={submit.loading}>
+      <Spin spinning={submitProps.loading}>
         <h2 className="text-xl font-bold">Create SQS Queue</h2>
 
         <Card title="Details" size="small" style={{ marginBottom: 16 }}>
-          <Form.Item label="Queue Type" valuePropName="checked">
+          <Form.Item label="Queue Type" valuePropName="checked" name="type">
             <Switch
               checkedChildren="FIFO"
               unCheckedChildren="Standard"
@@ -72,8 +79,7 @@ export const CreateSqsQueue = () => {
               { required: true, message: "Please input queue name!" },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  const selectedType = getFieldValue("type");
-                  if (selectedType === "fifo" && !value?.endsWith(".fifo")) {
+                  if (getFieldValue("type") && !value?.endsWith(".fifo")) {
                     return Promise.reject(
                       new Error("FIFO queue names must end with .fifo"),
                     );
@@ -88,33 +94,55 @@ export const CreateSqsQueue = () => {
         </Card>
 
         <Card title="Configuration" size="small" style={{ marginBottom: 16 }}>
-          <Form.Item name="delaySeconds" label="Delivery Delay (seconds)">
-            <InputNumber min={0} max={900} style={{ width: "100%" }} />
-          </Form.Item>
-
-          <Form.Item name="maximumMessageSize" label="Max Message Size (bytes)">
-            <InputNumber min={1024} max={262144} style={{ width: "100%" }} />
-          </Form.Item>
-
-          <Form.Item
-            name="messageRetentionPeriod"
-            label="Message Retention Period (seconds)"
-          >
-            <InputNumber min={60} max={1209600} style={{ width: "100%" }} />
-          </Form.Item>
+          <UnitInput
+            fieldName="delaySeconds"
+            label="Delivery Delay"
+            units={timeUnitsUpToHours}
+            min={0}
+            max={900}
+            rules={[{ required: true, message: "Please specify a delay" }]}
+            initialValue={30}
+            errorMessage="Should be between 0 seconds and 15 minutes."
+          />
 
           <Form.Item
-            name="visibilityTimeout"
-            label="Visibility Timeout (seconds)"
+            name="maximumMessageSize"
+            label="Max Message Size (kb)"
+            rules={[
+              { required: true, message: "Please specify a delay" },
+              validateRange(1, 256, "kb"),
+            ]}
           >
-            <InputNumber min={0} max={43200} style={{ width: "100%" }} />
+            <InputNumber />
           </Form.Item>
+
+          <UnitInput
+            fieldName="messageRetentionPeriod"
+            label="Message Retention Period"
+            units={timeUnitsUpToDays}
+            min={60}
+            max={1209600}
+            initialValue={4}
+            initialUnit="days"
+            errorMessage="Should be between 1 minute and 14 days."
+          />
+
+          <UnitInput
+            fieldName="visibilityTimeout"
+            label="Visibility Timeout"
+            units={timeUnitsUpToHours}
+            min={0}
+            max={43200}
+            initialValue={30}
+            errorMessage="Should be between 0 seconds and 12 hours."
+          />
 
           <Form.Item
             name="receiveMessageWaitTimeSeconds"
             label="Receive Message Wait Time (seconds)"
+            rules={[validateRange(0, 20, "seconds")]}
           >
-            <InputNumber min={0} max={20} style={{ width: "100%" }} />
+            <InputNumber />
           </Form.Item>
         </Card>
 
@@ -151,7 +179,7 @@ export const CreateSqsQueue = () => {
         </Card>
 
         <Form.Item label={null}>
-          <Button type="primary" htmlType="submit" {...submit}>
+          <Button type="primary" htmlType="submit" {...submitProps}>
             Create
           </Button>
         </Form.Item>
