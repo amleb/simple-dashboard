@@ -1,15 +1,33 @@
-import { InputType, ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { InputType, ObjectType, Field, Int } from '@nestjs/graphql';
 
 @ObjectType()
 export class SqsQueue {
-  @Field(() => ID)
+  @Field(() => String)
   id: string;
 
-  @Field()
+  @Field(() => String)
   name: string;
 
-  @Field()
+  @Field(() => String)
   region: string;
+
+  @Field(() => String, { nullable: true })
+  type?: string;
+
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date;
+
+  @Field(() => Number, { nullable: true })
+  messagesAvailable?: number;
+
+  @Field(() => Number, { nullable: true })
+  messagesInFlight?: number;
+
+  @Field(() => String, { nullable: true })
+  encryption?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  contentBasedDeduplication?: boolean;
 }
 
 @InputType()

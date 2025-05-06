@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import {
   CreateQueueCommand,
   DeleteQueueCommand,
+  GetQueueAttributesCommand,
   ListQueuesCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
-import { CreateSqsQueueInput } from './sqs-queue.model';
+import { CreateSqsQueueInput, SqsQueue } from './sqs-queue.model';
 import AwsClientOptionsFactory from '../lib/aws_client.factory';
 import { omit } from 'lodash';
 
@@ -17,18 +18,42 @@ export class SqsService {
     this.optionsFactory = new AwsClientOptionsFactory();
   }
 
-  async listQueues(
-    region: string,
-  ): Promise<{ id: string; name: string; region: string }[]> {
+  async listQueues(region: string): Promise<SqsQueue[]> {
     const client = new SQSClient(this.optionsFactory.createOptions(region));
-    const result = await client.send(new ListQueuesCommand({}));
+    const { QueueUrls = [] } = await client.send(new ListQueuesCommand({}));
 
-    return (
-      result.QueueUrls?.map((url) => {
-        const name = url.split('/').pop()!;
-        return { id: url, name, region };
-      }) || []
-    );
+    const queues: SqsQueue[] = [];
+
+    for (const url of QueueUrls) {
+      const name = url.split('/').pop()!;
+      const { Attributes } = await client.send(
+        new GetQueueAttributesCommand({
+          QueueUrl: url,
+          AttributeNames: ['All'],
+        }),
+      );
+
+      queues.push({
+        id: url,
+        name,
+        region,
+        type: name.endsWith('.fifo') ? 'FIFO' : 'Standard',
+        createdAt: Attributes?.CreatedTimestamp
+          ? new Date(Number(Attributes.CreatedTimestamp) * 1000)
+          : undefined,
+        messagesAvailable: Attributes?.ApproximateNumberOfMessages
+          ? parseInt(Attributes.ApproximateNumberOfMessages, 10)
+          : undefined,
+        messagesInFlight: Attributes?.ApproximateNumberOfMessagesNotVisible
+          ? parseInt(Attributes.ApproximateNumberOfMessagesNotVisible, 10)
+          : undefined,
+        encryption: Attributes?.KmsMasterKeyId ? 'KMS' : 'None',
+        contentBasedDeduplication:
+          Attributes?.ContentBasedDeduplication === 'true',
+      });
+    }
+
+    return queues;
   }
 
   async createQueue(region: string, input: CreateSqsQueueInput) {
