@@ -16,6 +16,7 @@ import {
 } from "../lib/utils/convertToSeconds";
 import { UnitInput } from "../components/form/UnitInput";
 import validateRange from "../lib/utils/fieldRangeValidator";
+import { omit } from "lodash";
 
 export const CreateSqsQueue = () => {
   const [isFifo, setIsFifo] = useState(false);
@@ -24,6 +25,12 @@ export const CreateSqsQueue = () => {
     resourceName: "SQS Queue",
     redirectTo: "/sqs-queues",
     apiResourceName: "sqsQueues",
+    beforeSave: (data) =>
+      omit(data, [
+        "DelaySeconds_unit",
+        "MessageRetentionPeriod_unit",
+        "VisibilityTimeout_unit",
+      ]),
   });
 
   const onFifoChange = (e: boolean) => {
@@ -52,19 +59,19 @@ export const CreateSqsQueue = () => {
       labelWrap
       style={{ maxWidth: 1200 }}
       initialValues={{
-        type: false,
-        maximumMessageSize: 256,
-        receiveMessageWaitTimeSeconds: 0,
-        contentBasedDeduplication: false,
-        deduplicationScope: "messageGroup",
-        fifoThroughputLimit: "perQueue",
+        FifoQueue: false,
+        MaximumMessageSize: 256,
+        ReceiveMessageWaitTimeSeconds: 0,
+        ContentBasedDeduplication: false,
+        DeduplicationScope: "messageGroup",
+        FifoThroughputLimit: "perQueue",
       }}
     >
       <Spin spinning={submitProps.loading}>
         <h2 className="text-xl font-bold">Create SQS Queue</h2>
 
         <Card title="Details" size="small" style={{ marginBottom: 16 }}>
-          <Form.Item label="Queue Type" valuePropName="checked" name="type">
+          <Form.Item label="Queue Type" valuePropName="checked" name="FifoQueue">
             <Switch
               checkedChildren="FIFO"
               unCheckedChildren="Standard"
@@ -79,7 +86,7 @@ export const CreateSqsQueue = () => {
               { required: true, message: "Please input queue name!" },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (getFieldValue("type") && !value?.endsWith(".fifo")) {
+                  if (getFieldValue("FifoQueue") && !value?.endsWith(".fifo")) {
                     return Promise.reject(
                       new Error("FIFO queue names must end with .fifo"),
                     );
@@ -95,7 +102,7 @@ export const CreateSqsQueue = () => {
 
         <Card title="Configuration" size="small" style={{ marginBottom: 16 }}>
           <UnitInput
-            fieldName="delaySeconds"
+            fieldName="DelaySeconds"
             label="Delivery Delay"
             units={timeUnitsUpToHours}
             min={0}
@@ -106,7 +113,7 @@ export const CreateSqsQueue = () => {
           />
 
           <Form.Item
-            name="maximumMessageSize"
+            name="MaximumMessageSize"
             label="Max Message Size (kb)"
             rules={[
               { required: true, message: "Please specify a delay" },
@@ -117,7 +124,7 @@ export const CreateSqsQueue = () => {
           </Form.Item>
 
           <UnitInput
-            fieldName="messageRetentionPeriod"
+            fieldName="MessageRetentionPeriod"
             label="Message Retention Period"
             units={timeUnitsUpToDays}
             min={60}
@@ -128,7 +135,7 @@ export const CreateSqsQueue = () => {
           />
 
           <UnitInput
-            fieldName="visibilityTimeout"
+            fieldName="VisibilityTimeout"
             label="Visibility Timeout"
             units={timeUnitsUpToHours}
             min={0}
@@ -138,7 +145,7 @@ export const CreateSqsQueue = () => {
           />
 
           <Form.Item
-            name="receiveMessageWaitTimeSeconds"
+            name="ReceiveMessageWaitTimeSeconds"
             label="Receive Message Wait Time (seconds)"
             rules={[validateRange(0, 20, "seconds")]}
           >
@@ -146,9 +153,10 @@ export const CreateSqsQueue = () => {
           </Form.Item>
         </Card>
 
+        {isFifo && (
         <Card title="Advanced" size="small">
           <Form.Item
-            name="contentBasedDeduplication"
+            name="ContentBasedDeduplication"
             label="Content-based Deduplication (FIFO only)"
             valuePropName="checked"
           >
@@ -156,28 +164,28 @@ export const CreateSqsQueue = () => {
           </Form.Item>
 
           <Form.Item
-            name="deduplicationScope"
+            name="DeduplicationScope"
             label="Deduplication Scope"
             tooltip="Scope for deduplication within the FIFO queue"
           >
             <Radio.Group disabled={!isFifo}>
-              <Radio value="messageGroup">Message Group</Radio>
-              <Radio value="queue">Queue</Radio>
+              <Radio value="MessageGroup">Message Group</Radio>
+              <Radio value="Queue">Queue</Radio>
             </Radio.Group>
           </Form.Item>
 
           <Form.Item
-            name="fifoThroughputLimit"
+            name="FifoThroughputLimit"
             label="FIFO Throughput Limit"
             tooltip="Enable high throughput mode for FIFO queue"
           >
             <Radio.Group disabled={!isFifo}>
-              <Radio value="perQueue">Per Queue</Radio>
-              <Radio value="perMessageGroupId">Per Message Group ID</Radio>
+              <Radio value="PerQueue">Per Queue</Radio>
+              <Radio value="PerMessageGroupId">Per Message Group ID</Radio>
             </Radio.Group>
           </Form.Item>
         </Card>
-
+            )}
         <Form.Item label={null}>
           <Button type="primary" htmlType="submit" {...submitProps}>
             Create

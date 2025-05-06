@@ -8,17 +8,20 @@ import { FieldValues } from "react-hook-form";
 import { graphqlDataProvider } from "../lib/dataProvider";
 import { useRegion } from "../contexts/RegionContext";
 import { createUrqlClient } from "../lib/urqlClient";
+import { omit } from "lodash";
 
 interface UseCreateResourceParams {
   apiResourceName: string; // The name of the GraphQL API resource (e.g., "sqsQueues", "s3Buckets")
   redirectTo: string;
   resourceName?: string; // The name of the resource (e.g., "SQS Queue", "S3 Bucket")
+  beforeSave?: (data: FieldValues) => FieldValues;
 }
 
 const useCreateResource = ({
   resourceName,
   redirectTo,
   apiResourceName,
+  beforeSave,
 }: UseCreateResourceParams) => {
   const [loading, setLoading] = useState(false);
   const [creatingResource, setCreatingResource] = useState(false);
@@ -51,13 +54,22 @@ const useCreateResource = ({
     setLoading(true);
     setCreatingResource(true);
 
+    if (typeof beforeSave === "function") {
+      data = beforeSave(data);
+    }
+
     await fakeApiDelay(0);
+
+    const itemName = data.name;
 
     try {
       const provider = graphqlDataProvider(client);
       await provider.create({
         resource: apiResourceName,
-        variables: data,
+        variables: {
+          name: itemName,
+          attributes: omit(data, ["name"]),
+        },
         meta: { region },
       });
 
@@ -65,7 +77,7 @@ const useCreateResource = ({
 
       notification.success({
         message: "",
-        description: `${resourceName || "Resource"} "${data.name}" was created successfully.`,
+        description: `${resourceName || "Resource"} "${itemName}" was created successfully.`,
       });
 
       navigate(redirectTo);

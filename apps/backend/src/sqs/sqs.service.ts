@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-sqs';
 import { CreateSqsQueueInput } from './sqs-queue.model';
 import AwsClientOptionsFactory from '../lib/aws_client.factory';
+import { omit } from 'lodash';
 
 @Injectable()
 export class SqsService {
@@ -32,14 +33,33 @@ export class SqsService {
 
   async createQueue(region: string, input: CreateSqsQueueInput) {
     const client = new SQSClient(this.optionsFactory.createOptions(region));
-    const command = new CreateQueueCommand({
-      QueueName: input.name,
+    const attributes: Record<string, string> = {};
+    if (input.attributes) {
+      for (const [key, value] of Object.entries(input.attributes)) {
+        if (value !== undefined && value !== null) {
+          attributes[key] = String(value);
+        }
+      }
+    }
+
+    const tags: Record<string, string> = {};
+    input.tags?.forEach((tag) => {
+      tags[tag.key] = tag.value;
     });
 
-    const result = await client.send(command);
+    const command = new CreateQueueCommand({
+      QueueName: input.name,
+      Attributes:
+        attributes.FifoQueue === 'true'
+          ? attributes
+          : omit(attributes, 'FifoQueue'),
+      tags: tags,
+    });
+
+    const response = await client.send(command);
 
     return {
-      id: result.QueueUrl || '',
+      id: response.QueueUrl || '',
       name: input.name,
       region,
     };
