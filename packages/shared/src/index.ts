@@ -1,7 +1,9 @@
-export type TUnitValue = "seconds" | "minutes" | "hours" | "days";
+export type TimeUnitValue = "seconds" | "minutes" | "hours" | "days";
 
-export type TUnit = {
+export type SizeUnitValue = "bytes" | "kilobytes" | "megabytes" | "gigabytes";
+
+export type TUnit<T extends TimeUnitValue | SizeUnitValue> = {
     label: string;
-    value: TUnitValue;
+    value: T;
     multiplier: number;
 };

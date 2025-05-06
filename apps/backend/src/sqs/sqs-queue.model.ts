@@ -19,6 +19,14 @@ export class TagInput {
 }
 
 @InputType()
+class RedrivePolicyInput {
+  @Field()
+  DeadLetterTargetArn: string;
+  @Field()
+  MaxReceiveCount: number;
+}
+
+@InputType()
 export class QueueAttributesInput {
   @Field(() => Int, { nullable: true }) DelaySeconds?: number;
   @Field(() => Int, { nullable: true }) MaximumMessageSize?: number;
@@ -31,7 +39,7 @@ export class QueueAttributesInput {
   @Field({ nullable: true }) FifoThroughputLimit?: string;
   @Field({ nullable: true }) KmsMasterKeyId?: string;
   @Field(() => Int, { nullable: true }) KmsDataKeyReusePeriodSeconds?: number;
-  @Field({ nullable: true }) RedrivePolicy?: string;
+  @Field({ nullable: true }) RedrivePolicy?: RedrivePolicyInput;
   @Field({ nullable: true }) RedriveAllowPolicy?: string;
   @Field({ nullable: true }) SqsManagedSseEnabled?: boolean;
   @Field({ nullable: true }) Policy?: string;

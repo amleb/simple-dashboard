@@ -1,28 +1,22 @@
 import React, { useState } from "react";
 import { Form, InputNumber, Select, Space } from "antd";
 import { Rule } from "antd/es/form";
-import { TUnit, TUnitValue } from "@simple-dashboard/shared";
+import { TUnit, TimeUnitValue } from "@simple-dashboard/shared";
+import { convertToSeconds } from "../../lib/utils/convertToSeconds";
 
 type UnitInputProps = {
   fieldName: string;
   label: string;
-  units: TUnit[];
+  units: TUnit<TimeUnitValue>[];
   rules?: Rule[];
-  initialUnit?: TUnitValue;
+  initialUnit?: TimeUnitValue;
   initialValue?: number;
   min?: number;
   max?: number;
   errorMessage?: string;
 };
 
-const unitMultipliers: Record<TUnitValue, number> = {
-  seconds: 1,
-  minutes: 60,
-  hours: 3600,
-  days: 86400,
-};
-
-export const UnitInput: React.FC<UnitInputProps> = ({
+export const TimeWithUnitInput: React.FC<UnitInputProps> = ({
   fieldName,
   label,
   units,
@@ -32,7 +26,7 @@ export const UnitInput: React.FC<UnitInputProps> = ({
   max = Infinity,
   errorMessage,
 }) => {
-  const [unit, setUnit] = useState<TUnitValue>(initialUnit);
+  const [unit, setUnit] = useState<TimeUnitValue>(initialUnit);
 
   return (
     <Form.Item
@@ -41,12 +35,11 @@ export const UnitInput: React.FC<UnitInputProps> = ({
       style={{ marginBottom: 16 }}
       shouldUpdate={(prev, curr) =>
         prev[fieldName] !== curr[fieldName] ||
-        prev[`${fieldName}_unit`] !== curr[`${fieldName}_unit`]
+        prev[`${fieldName}_time_unit`] !== curr[`${fieldName}_time_unit`]
       }
     >
       {({ getFieldValue }) => {
-        const currentUnit = getFieldValue(`${fieldName}_unit`) || unit;
-        const multiplier = unitMultipliers[currentUnit as TUnitValue];
+        const currentUnit = getFieldValue(`${fieldName}_time_unit`) || unit;
 
         return (
           <Space>
@@ -59,7 +52,7 @@ export const UnitInput: React.FC<UnitInputProps> = ({
                     if (value === undefined || value === null)
                       return Promise.reject("Required");
 
-                    const baseValue = value * multiplier;
+                    const baseValue = convertToSeconds(value, currentUnit);
                     if (baseValue < min || baseValue > max) {
                       const msg =
                         errorMessage ||
@@ -75,7 +68,11 @@ export const UnitInput: React.FC<UnitInputProps> = ({
               <InputNumber />
             </Form.Item>
 
-            <Form.Item name={`${fieldName}_unit`} initialValue={unit} noStyle>
+            <Form.Item
+              name={`${fieldName}_time_unit`}
+              initialValue={unit}
+              noStyle
+            >
               <Select
                 style={{ width: 100 }}
                 onChange={(value) => setUnit(value)}

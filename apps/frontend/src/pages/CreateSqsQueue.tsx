@@ -13,10 +13,10 @@ import useCreateResource from "../hooks/useCreateResource";
 import {
   timeUnitsUpToHours,
   timeUnitsUpToDays,
+  convertTimeUnitFieldsToSeconds,
 } from "../lib/utils/convertToSeconds";
-import { UnitInput } from "../components/form/UnitInput";
+import { TimeWithUnitInput } from "../components/form/TimeWithUnitInput";
 import validateRange from "../lib/utils/fieldRangeValidator";
-import { omit } from "lodash";
 
 export const CreateSqsQueue = () => {
   const [isFifo, setIsFifo] = useState(false);
@@ -25,12 +25,10 @@ export const CreateSqsQueue = () => {
     resourceName: "SQS Queue",
     redirectTo: "/sqs-queues",
     apiResourceName: "sqsQueues",
-    beforeSave: (data) =>
-      omit(data, [
-        "DelaySeconds_unit",
-        "MessageRetentionPeriod_unit",
-        "VisibilityTimeout_unit",
-      ]),
+    beforeSave: (data) => {
+      data.MaximumMessageSize = data.MaximumMessageSize * 1024;
+      return convertTimeUnitFieldsToSeconds(data);
+    },
   });
 
   const onFifoChange = (e: boolean) => {
@@ -71,7 +69,11 @@ export const CreateSqsQueue = () => {
         <h2 className="text-xl font-bold">Create SQS Queue</h2>
 
         <Card title="Details" size="small" style={{ marginBottom: 16 }}>
-          <Form.Item label="Queue Type" valuePropName="checked" name="FifoQueue">
+          <Form.Item
+            label="Queue Type"
+            valuePropName="checked"
+            name="FifoQueue"
+          >
             <Switch
               checkedChildren="FIFO"
               unCheckedChildren="Standard"
@@ -101,7 +103,7 @@ export const CreateSqsQueue = () => {
         </Card>
 
         <Card title="Configuration" size="small" style={{ marginBottom: 16 }}>
-          <UnitInput
+          <TimeWithUnitInput
             fieldName="DelaySeconds"
             label="Delivery Delay"
             units={timeUnitsUpToHours}
@@ -123,7 +125,7 @@ export const CreateSqsQueue = () => {
             <InputNumber />
           </Form.Item>
 
-          <UnitInput
+          <TimeWithUnitInput
             fieldName="MessageRetentionPeriod"
             label="Message Retention Period"
             units={timeUnitsUpToDays}
@@ -134,7 +136,7 @@ export const CreateSqsQueue = () => {
             errorMessage="Should be between 1 minute and 14 days."
           />
 
-          <UnitInput
+          <TimeWithUnitInput
             fieldName="VisibilityTimeout"
             label="Visibility Timeout"
             units={timeUnitsUpToHours}
@@ -154,38 +156,38 @@ export const CreateSqsQueue = () => {
         </Card>
 
         {isFifo && (
-        <Card title="Advanced" size="small">
-          <Form.Item
-            name="ContentBasedDeduplication"
-            label="Content-based Deduplication (FIFO only)"
-            valuePropName="checked"
-          >
-            <Switch disabled={!isFifo} />
-          </Form.Item>
+          <Card title="Advanced" size="small">
+            <Form.Item
+              name="ContentBasedDeduplication"
+              label="Content-based Deduplication (FIFO only)"
+              valuePropName="checked"
+            >
+              <Switch disabled={!isFifo} />
+            </Form.Item>
 
-          <Form.Item
-            name="DeduplicationScope"
-            label="Deduplication Scope"
-            tooltip="Scope for deduplication within the FIFO queue"
-          >
-            <Radio.Group disabled={!isFifo}>
-              <Radio value="MessageGroup">Message Group</Radio>
-              <Radio value="Queue">Queue</Radio>
-            </Radio.Group>
-          </Form.Item>
+            <Form.Item
+              name="DeduplicationScope"
+              label="Deduplication Scope"
+              tooltip="Scope for deduplication within the FIFO queue"
+            >
+              <Radio.Group disabled={!isFifo}>
+                <Radio value="MessageGroup">Message Group</Radio>
+                <Radio value="Queue">Queue</Radio>
+              </Radio.Group>
+            </Form.Item>
 
-          <Form.Item
-            name="FifoThroughputLimit"
-            label="FIFO Throughput Limit"
-            tooltip="Enable high throughput mode for FIFO queue"
-          >
-            <Radio.Group disabled={!isFifo}>
-              <Radio value="PerQueue">Per Queue</Radio>
-              <Radio value="PerMessageGroupId">Per Message Group ID</Radio>
-            </Radio.Group>
-          </Form.Item>
-        </Card>
-            )}
+            <Form.Item
+              name="FifoThroughputLimit"
+              label="FIFO Throughput Limit"
+              tooltip="Enable high throughput mode for FIFO queue"
+            >
+              <Radio.Group disabled={!isFifo}>
+                <Radio value="PerQueue">Per Queue</Radio>
+                <Radio value="PerMessageGroupId">Per Message Group ID</Radio>
+              </Radio.Group>
+            </Form.Item>
+          </Card>
+        )}
         <Form.Item label={null}>
           <Button type="primary" htmlType="submit" {...submitProps}>
             Create
