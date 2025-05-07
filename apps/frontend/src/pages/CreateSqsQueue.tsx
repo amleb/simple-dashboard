@@ -23,7 +23,7 @@ export const CreateSqsQueue = () => {
 
   const { formProps, submitProps } = useCreateResource({
     resourceName: "SQS Queue",
-    redirectTo: "/sqs-queues",
+    redirectTo: "/sqs",
     apiResourceName: "sqsQueues",
     beforeSave: (data) => {
       data.MaximumMessageSize = data.MaximumMessageSize * 1024;

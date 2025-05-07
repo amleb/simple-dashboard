@@ -19,6 +19,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { graphqlDataProvider } from "./lib/dataProvider";
 import { createUrqlClient } from "./lib/urqlClient";
 import { CreateSqsQueue } from "./pages/CreateSqsQueue";
+// import { EditSqsQueue } from './pages/EditSqsQueue';
 
 const region = localStorage.getItem("region") || "us-east-1";
 const client = createUrqlClient(region);
@@ -32,13 +33,13 @@ const App: React.FC = () => {
             dataProvider={graphqlDataProvider(client)}
             resources={[
               {
-                name: "buckets",
-                list: "/buckets",
+                name: "s3buckets",
+                list: "/s3",
                 meta: { label: "S3 Buckets" },
               },
               {
                 name: "sqsQueues",
-                list: "/sqs-queues",
+                list: "/sqs",
                 meta: { label: "SQS Queues" },
               },
             ]}
@@ -51,9 +52,10 @@ const App: React.FC = () => {
             <ThemedLayoutV2 Header={() => <TopBar />}>
               <Routes>
                 <Route path="/" element={<WelcomePage />} />
-                <Route path="buckets" element={<S3BucketsPage />} />
-                <Route path="sqs-queues" element={<SQSQueuesPage />} />
+                <Route path="/s3" element={<S3BucketsPage />} />
+                <Route path="/sqs" element={<SQSQueuesPage />} />
                 <Route path="/sqs/create" element={<CreateSqsQueue />} />
+                {/*<Route path="/sqs/edit/:id" element={<EditSqsQueue />} />,*/}
                 <Route path="*" element={<ErrorComponent />} />
               </Routes>
               <UnsavedChangesNotifier />

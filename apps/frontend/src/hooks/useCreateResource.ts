@@ -3,11 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { notification } from "antd";
 import { useForm } from "@refinedev/antd";
 import { useRef } from "react";
-import { useWarnAboutChange } from "@refinedev/core";
+import { BaseRecord, useCreate, useWarnAboutChange } from "@refinedev/core";
 import { FieldValues } from "react-hook-form";
-import { graphqlDataProvider } from "../lib/dataProvider";
 import { useRegion } from "../contexts/RegionContext";
-import { createUrqlClient } from "../lib/urqlClient";
 import { omit } from "lodash";
 
 interface UseCreateResourceParams {
@@ -17,7 +15,13 @@ interface UseCreateResourceParams {
   beforeSave?: (data: FieldValues) => FieldValues;
 }
 
-const useCreateResource = ({
+interface CreateResponseData extends BaseRecord {
+  id: string;
+  name: string;
+  region: string;
+}
+
+const useCreateResource = <T extends CreateResponseData>({
   resourceName,
   redirectTo,
   apiResourceName,
@@ -30,8 +34,33 @@ const useCreateResource = ({
   const [, setHasUnsavedChanges] = useState(false); // To track unsaved changes
   const formRef = useRef(form);
   const { region } = useRegion();
-  const client = createUrqlClient(region);
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const { mutate } = useCreate<T>({
+    resource: apiResourceName,
+    mutationOptions: {
+      retry: 1,
+      onSuccess: (data) => {
+        setIsFormDirty(false);
+
+        notification.success({
+          message: "",
+          description: `${resourceName || "Resource"} "${data.data.name}" was created successfully.`,
+        });
+
+        navigate(redirectTo);
+      },
+      onError: (error) => {
+        notification.error({
+          message: `Failed to create ${(resourceName || "Resource").toLowerCase()}`,
+          description: error.message,
+        });
+
+        setIsFormDirty(false);
+        setCreatingResource(false);
+        setLoading(false);
+      },
+    },
+  });
 
   useWarnAboutChange();
 
@@ -62,35 +91,13 @@ const useCreateResource = ({
 
     const itemName = data.name;
 
-    try {
-      const provider = graphqlDataProvider(client);
-      await provider.create({
-        resource: apiResourceName,
-        variables: {
-          name: itemName,
-          attributes: omit(data, ["name"]),
-        },
-        meta: { region },
-      });
-
-      setIsFormDirty(false);
-
-      notification.success({
-        message: "",
-        description: `${resourceName || "Resource"} "${itemName}" was created successfully.`,
-      });
-
-      navigate(redirectTo);
-    } catch (err: unknown) {
-      const error = err as Error;
-      notification.error({
-        message: `Failed to create ${(resourceName || "Resource").toLowerCase()}`,
-        description: error.message,
-      });
-    } finally {
-      setCreatingResource(false);
-      setLoading(false);
-    }
+    mutate({
+      values: {
+        name: itemName,
+        attributes: omit(data, ["name"]),
+      },
+      meta: { region },
+    });
   };
 
   return {

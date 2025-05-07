@@ -3,7 +3,7 @@ import { List, useTable } from "@refinedev/antd";
 import { Button, notification, Popconfirm, Space, Table } from "antd";
 import { useRegion } from "../contexts/RegionContext";
 import { useNavigate } from "react-router-dom";
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useDelete } from "@refinedev/core";
 import { ColumnsType } from "antd/es/table";
 
@@ -53,35 +53,45 @@ const SQSQueuesPage: React.FC = () => {
       title: "Actions",
       dataIndex: "actions",
       render: (_text: string, record: SqsQueue) => (
-        <Popconfirm
-          title="Are you sure to delete this queue?"
-          onConfirm={() =>
-            deleteQueue(
-              {
-                resource: "sqsQueues",
-                id: record.id,
-                mutationMode: "pessimistic",
-                meta: {
-                  region,
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() =>
+              navigate(`/sqs/edit/${encodeURIComponent(record.id)}`)
+            }
+          >
+            Edit
+          </Button>
+          <Popconfirm
+            title="Are you sure to delete this queue?"
+            onConfirm={() =>
+              deleteQueue(
+                {
+                  resource: "sqsQueues",
+                  id: record.id,
+                  mutationMode: "pessimistic",
+                  meta: {
+                    region,
+                  },
                 },
-              },
-              {
-                onSuccess: () => {
-                  notification.success({
-                    message: "Queue deleted successfully",
-                  });
+                {
+                  onSuccess: () => {
+                    notification.success({
+                      message: "Queue deleted successfully",
+                    });
+                  },
+                  onError: () => {
+                    notification.error({ message: "Failed to delete queue" });
+                  },
                 },
-                onError: () => {
-                  notification.error({ message: "Failed to delete queue" });
-                },
-              },
-            )
-          }
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button danger icon={<DeleteOutlined />} loading={isDeleting} />
-        </Popconfirm>
+              )
+            }
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button danger icon={<DeleteOutlined />} loading={isDeleting} />
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
