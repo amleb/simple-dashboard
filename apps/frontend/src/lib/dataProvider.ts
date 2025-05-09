@@ -8,23 +8,69 @@ import {
   DeleteOneResponse,
   GetOneResponse,
   MetaQuery,
-  NestedField,
+  UpdateResponse,
 } from "@refinedev/core";
 import { CreateResponse } from "@refinedev/core/src/contexts/data/types";
+import { DocumentNode } from "graphql";
+import flattenObjectKeys from "./utils/flattenObjectKeys";
+import { GraphQlAction, GraphQLOperation, GraphQLQuery } from "./graphQlTypes";
+import { GetListParams, GetListResponse } from '@refinedev/core/dist/contexts/data/types';
 
-interface GraphQLQueryResult<T = any> {
+interface GraphQLQueryResult<T = object> {
   data: { [key: string]: T };
   error?: Error;
 }
 
-interface GraphQLMutationResult<T = any> {
+interface GraphQLMutationResult<T = object> {
   data: { [key: string]: T };
   error?: Error;
+}
+
+function findGraphQl(
+  resource: string,
+  action: GraphQlAction,
+  meta?: MetaQuery,
+): { query: DocumentNode; responseKey: string } {
+  const map = GraphQLMap[resource] ? GraphQLMap[resource][action] : null;
+
+  let query;
+  let responseKey = meta?.responseKey;
+
+  if (!responseKey) {
+    if (!map) {
+      throw new Error(
+        `Response key for action ${action} not defined for resource: ${resource}`,
+      );
+    }
+
+    responseKey = map.responseKey;
+  }
+
+  if (meta?.gqlQuery) {
+    query = meta.gqlQuery;
+  } else {
+    if (!map) {
+      throw new Error(
+        `Operation not defined for resource: ${resource}, action: ${action}`,
+      );
+    }
+
+    if (action === "create" || action === "update" || action === "delete") {
+      query = (map as GraphQLOperation).mutation;
+    } else {
+      query = (map as GraphQLQuery).query;
+    }
+  }
+
+  return {
+    query,
+    responseKey,
+  };
 }
 
 async function executeGraphQLQuery<T>(
   client: Client,
-  query: string,
+  query: DocumentNode,
   variables: Record<string, unknown>,
 ): Promise<GraphQLQueryResult<T>> {
   const result = await client.query(query, variables).toPromise();
@@ -38,7 +84,7 @@ async function executeGraphQLQuery<T>(
 
 async function executeGraphQLMutation<T>(
   client: Client,
-  mutation: string,
+  mutation: DocumentNode,
   variables: Record<string, unknown>,
 ): Promise<GraphQLMutationResult<T>> {
   const request = createRequest(mutation, variables);
@@ -51,43 +97,22 @@ async function executeGraphQLMutation<T>(
   return result as GraphQLMutationResult<T>;
 }
 
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-
-const defaultFields = ["id", "name", "region"];
-
 function validateResourceName(resource: string) {
   if (!/^[a-zA-Z0-9_]+$/.test(resource)) {
     throw new Error("Invalid resource name");
   }
 }
 
-function validateResourceFields(fields: string | object | NestedField[]) {
-  if (
-    !Array.isArray(fields) ||
-    !fields.every((field) => typeof field === "string")
-  ) {
-    throw new Error("Invalid fields specification");
-  }
-}
-
 export const graphqlDataProvider = (client: Client): DataProvider => ({
-  getList: async ({ resource, meta }) => {
-    const fields = meta?.fields ?? defaultFields;
+  getList: async <TData extends BaseRecord = BaseRecord>({ resource, meta }: GetListParams): Promise<GetListResponse<TData>> => {
     const region = meta?.region;
 
     validateResourceName(resource);
-    validateResourceFields(fields);
 
-    const query = `
-      query List${capitalize(resource)}($region: String!) {
-        ${resource}(region: $region) {
-          ${fields.join("\n")}
-        }
-      }
-    `;
+    const { query, responseKey } = findGraphQl(resource, "getList", meta);
 
-    const result = await executeGraphQLQuery<any[]>(client, query, { region });
-    const data = result?.data[resource] || [];
+    const result = await executeGraphQLQuery<TData[]>(client, query, { region });
+    const data = result?.data[responseKey] || [];
 
     return {
       data,
@@ -104,30 +129,25 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
     id: BaseKey;
     meta?: MetaQuery;
   }): Promise<GetOneResponse<TData>> => {
-    const fields = meta?.fields ?? defaultFields;
     const region = meta?.region;
 
     validateResourceName(resource);
 
-    const query = `
-      query Get${capitalize(resource)}($id: ID!, $region: String) {
-        ${resource}(id: $id) {
-          ${fields.join("\n")}
-        }
-      }
-    `;
+    const { query, responseKey } = findGraphQl(resource, "getOne", meta);
 
     const result = await executeGraphQLQuery<TData>(client, query, {
       region,
       id,
     });
 
-    if (!result.data || !result.data[resource]) {
-      throw new Error(`No data found for resource: ${resource} with id: ${id}`);
+    if (!result.data || !result.data[responseKey]) {
+      throw new Error(
+        `No data found for resource: ${resource}, response key: ${responseKey} with id: ${id}`,
+      );
     }
 
     return {
-      data: result.data[resource] as TData,
+      data: flattenObjectKeys(result.data[responseKey])  as TData,
     };
   },
 
@@ -144,19 +164,16 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
     meta?: MetaQuery;
   }): Promise<CreateResponse<TData>> => {
     validateResourceName(resource);
-    const map = GraphQLMap[resource]?.create;
 
-    if (!map) {
-      throw new Error(`Create operation not defined for resource: ${resource}`);
-    }
+    const { query, responseKey } = findGraphQl(resource, "create", meta);
 
-    const result = await executeGraphQLMutation<TData>(client, map.mutation, {
+    const result = await executeGraphQLMutation<TData>(client, query, {
       region: meta?.region,
       input: variables,
     });
 
     return {
-      data: result.data?.[map.responseKey],
+      data: result.data?.[responseKey],
     };
   },
 
@@ -188,7 +205,21 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
     };
   },
 
-  update: async () => {
+  update: async <
+    TData extends BaseRecord = BaseRecord,
+    TVariables = NonNullable<unknown>,
+  >({
+    resource,
+    variables,
+    meta,
+  }: {
+    resource: string;
+    variables: TVariables;
+    meta?: MetaQuery;
+  }): Promise<UpdateResponse<TData>> => {
+    console.log(resource);
+    console.log(variables);
+    console.log(meta);
     throw new Error("update not implemented");
   },
 

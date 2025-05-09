@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { notification } from "antd";
 import { useForm } from "@refinedev/antd";
 import { useRef } from "react";
-import { BaseRecord, useCreate, useWarnAboutChange } from "@refinedev/core";
+import { BaseRecord, useCreate } from "@refinedev/core";
 import { FieldValues } from "react-hook-form";
 import { useRegion } from "../contexts/RegionContext";
 import { omit } from "lodash";
@@ -29,9 +29,11 @@ const useCreateResource = <T extends CreateResponseData>({
 }: UseCreateResourceParams) => {
   const [loading, setLoading] = useState(false);
   const [creatingResource, setCreatingResource] = useState(false);
-  const { form } = useForm();
+  const { form } = useForm({
+    warnWhenUnsavedChanges: true,
+  });
   const navigate = useNavigate();
-  const [, setHasUnsavedChanges] = useState(false); // To track unsaved changes
+  // const [, setHasUnsavedChanges] = useState(false); // To track unsaved changes
   const formRef = useRef(form);
   const { region } = useRegion();
   const [isFormDirty, setIsFormDirty] = useState(false);
@@ -62,8 +64,8 @@ const useCreateResource = <T extends CreateResponseData>({
     },
   });
 
-  useWarnAboutChange();
-
+  // useWarnAboutChange();
+  //
   useEffect(() => {
     window.onbeforeunload = isFormDirty ? () => true : null;
     return () => {
@@ -75,9 +77,9 @@ const useCreateResource = <T extends CreateResponseData>({
     return new Promise((res) => setTimeout(res, delay));
   };
 
-  const onValuesChange = () => {
-    setHasUnsavedChanges(true);
-  };
+  // const onValuesChange = () => {
+  //   setHasUnsavedChanges(true);
+  // };
 
   const onFinish = async (data: FieldValues) => {
     setLoading(true);
@@ -103,7 +105,7 @@ const useCreateResource = <T extends CreateResponseData>({
   return {
     formProps: {
       form,
-      onValuesChange,
+      // onValuesChange,
       onFinish,
       ref: formRef,
     },

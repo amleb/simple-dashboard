@@ -7,22 +7,19 @@ import {
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import WelcomePage from "./pages/WelcomePage";
 import S3BucketsPage from "./pages/S3BucketsPage";
-import SQSQueuesPage from "./pages/SQSQueuesPage";
+import { CreateSqsQueue, ListSqsQueues, EditSqsQueue } from "./pages/sqs/pages";
 import { RegionProvider } from "./contexts/RegionContext";
 import React from "react";
 import { TopBar } from "./components/TopBar";
-import {
+import routerProvider, {
   DocumentTitleHandler,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { graphqlDataProvider } from "./lib/dataProvider";
 import { createUrqlClient } from "./lib/urqlClient";
-import { CreateSqsQueue } from "./pages/CreateSqsQueue";
-// import { EditSqsQueue } from './pages/EditSqsQueue';
 
-const region = localStorage.getItem("region") || "us-east-1";
-const client = createUrqlClient(region);
+const client = createUrqlClient(localStorage.getItem("region") || "us-east-1");
 
 const App: React.FC = () => {
   return (
@@ -30,6 +27,7 @@ const App: React.FC = () => {
       <RegionProvider>
         <BrowserRouter>
           <Refine
+            routerProvider={routerProvider}
             dataProvider={graphqlDataProvider(client)}
             resources={[
               {
@@ -53,14 +51,14 @@ const App: React.FC = () => {
               <Routes>
                 <Route path="/" element={<WelcomePage />} />
                 <Route path="/s3" element={<S3BucketsPage />} />
-                <Route path="/sqs" element={<SQSQueuesPage />} />
+                <Route path="/sqs" element={<ListSqsQueues />} />
                 <Route path="/sqs/create" element={<CreateSqsQueue />} />
-                {/*<Route path="/sqs/edit/:id" element={<EditSqsQueue />} />,*/}
+                <Route path="/sqs/edit/:id" element={<EditSqsQueue />} />,
                 <Route path="*" element={<ErrorComponent />} />
               </Routes>
-              <UnsavedChangesNotifier />
-              <DocumentTitleHandler />
             </ThemedLayoutV2>
+            <DocumentTitleHandler />
+            <UnsavedChangesNotifier />
           </Refine>
         </BrowserRouter>
       </RegionProvider>

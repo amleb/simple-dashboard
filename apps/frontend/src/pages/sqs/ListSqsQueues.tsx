@@ -1,7 +1,7 @@
 import React from "react";
 import { List, useTable } from "@refinedev/antd";
 import { Button, notification, Popconfirm, Space, Table } from "antd";
-import { useRegion } from "../contexts/RegionContext";
+import { useRegion } from "../../contexts/RegionContext";
 import { useNavigate } from "react-router-dom";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useDelete } from "@refinedev/core";
@@ -13,7 +13,7 @@ type SqsQueue = {
   region: string;
 };
 
-const SQSQueuesPage: React.FC = () => {
+const ListSqsQueues: React.FC = () => {
   const navigate = useNavigate();
   const { mutate: deleteQueue, isLoading: isDeleting } = useDelete();
   const { region } = useRegion();
@@ -100,17 +100,6 @@ const SQSQueuesPage: React.FC = () => {
     resource: "sqsQueues",
     meta: {
       region,
-      fields: [
-        "id",
-        "name",
-        "region",
-        "type",
-        "createdAt",
-        "messagesAvailable",
-        "messagesInFlight",
-        "encryption",
-        "contentBasedDeduplication",
-      ],
     },
   });
 
@@ -126,4 +115,4 @@ const SQSQueuesPage: React.FC = () => {
   );
 };
 
-export default SQSQueuesPage;
+export default ListSqsQueues;
