@@ -1,4 +1,4 @@
-import { InputType, ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { InputType, ObjectType, Field, ID } from '@nestjs/graphql';
 
 @ObjectType()
 export class SqsQueue {
@@ -40,57 +40,35 @@ class RedrivePolicyInput {
 
 @InputType()
 export class QueueAttributesInput {
-  @Field(() => Int, { nullable: true }) DelaySeconds?: number | string;
-  @Field(() => Int, { nullable: true }) MaximumMessageSize?: number | string;
-  @Field(() => Int, { nullable: true }) MessageRetentionPeriod?:
-    | number
-    | string;
-  @Field(() => Int, { nullable: true }) ReceiveMessageWaitTimeSeconds?:
-    | number
-    | string;
-  @Field(() => Int, { nullable: true }) VisibilityTimeout?: number | string;
-  @Field({ nullable: true }) FifoQueue?: boolean;
-  @Field({ nullable: true }) ContentBasedDeduplication?: boolean;
+  @Field(() => String, { nullable: true }) DelaySeconds?: string;
+  @Field(() => String, { nullable: true }) MaximumMessageSize?: string;
+  @Field(() => String, { nullable: true }) MessageRetentionPeriod?: string;
+  @Field(() => String, { nullable: true })
+  ReceiveMessageWaitTimeSeconds?: string;
+  @Field(() => String, { nullable: true }) VisibilityTimeout?: string;
+  @Field({ nullable: true }) FifoQueue?: string;
+  @Field({ nullable: true }) ContentBasedDeduplication?: string;
   @Field({ nullable: true }) DeduplicationScope?: string;
   @Field({ nullable: true }) FifoThroughputLimit?: string;
   @Field({ nullable: true }) KmsMasterKeyId?: string;
-  @Field(() => Int, { nullable: true }) KmsDataKeyReusePeriodSeconds?:
-    | number
-    | string;
+  @Field(() => String, { nullable: true })
+  KmsDataKeyReusePeriodSeconds?: string;
   @Field({ nullable: true }) RedrivePolicy?: RedrivePolicyInput;
   @Field({ nullable: true }) RedriveAllowPolicy?: string;
-  @Field({ nullable: true }) SqsManagedSseEnabled?: boolean;
+  @Field({ nullable: true }) SqsManagedSseEnabled?: string;
   @Field({ nullable: true }) Policy?: string;
 }
 
 @ObjectType()
 export class QueueAttributes2 {
-  // @Field(() => String, { nullable: true })
-  // ApproximateNumberOfMessages?: string;
-  //
-  // @Field(() => String, { nullable: true })
-  // ApproximateNumberOfMessagesNotVisible?: string;
-  //
-  // @Field(() => String, { nullable: true })
-  // ApproximateNumberOfMessagesDelayed?: string;
-  //
-  // @Field(() => String, { nullable: true })
-  // CreatedTimestamp?: string;
-
   @Field(() => String, { nullable: true })
   DelaySeconds?: string;
-  //
-  // @Field(() => String, { nullable: true })
-  // LastModifiedTimestamp?: string;
 
   @Field(() => String, { nullable: true })
   MaximumMessageSize?: string;
 
   @Field(() => String, { nullable: true })
   MessageRetentionPeriod?: string;
-
-  // @Field(() => String, { nullable: true })
-  // QueueArn?: string;
 
   @Field(() => String, { nullable: true })
   ReceiveMessageWaitTimeSeconds?: string;

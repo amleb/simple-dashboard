@@ -43,7 +43,7 @@ function findGraphQl(
       );
     }
 
-    responseKey = map.responseKey;
+    responseKey = map.responseKey || resource;
   }
 
   if (meta?.gqlQuery) {
@@ -195,7 +195,7 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
 
     await executeGraphQLMutation(client, config.mutation, {
       region: meta?.region,
-      queueUrl: id,
+      id,
     });
 
     return {

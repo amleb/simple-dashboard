@@ -6,12 +6,12 @@ export type GraphQlAction = GraphQlQueryAction | GraphQlMutateAction;
 
 export type GraphQLQuery = {
   query: DocumentNode;
-  responseKey: string;
+  responseKey?: string;
 };
 
 export type GraphQLOperation = {
   mutation: DocumentNode;
-  responseKey: string;
+  responseKey?: string;
 };
 
 export type GraphQLResourceOperations = {

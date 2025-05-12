@@ -107,9 +107,9 @@ export class SqsService {
     };
   }
 
-  async deleteQueue(region: string, queueUrl: string) {
+  async deleteQueue(region: string, id: string) {
     const client = new SQSClient(this.optionsFactory.createOptions(region));
-    const command = new DeleteQueueCommand({ QueueUrl: queueUrl });
+    const command = new DeleteQueueCommand({ QueueUrl: id });
     await client.send(command);
     return true;
   }

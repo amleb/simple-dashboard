@@ -16,8 +16,8 @@ const sqsResourceOperations: GraphQLResourceOperations = {
   },
   delete: {
     mutation: gql`
-      mutation DeleteSqsQueue($region: String!, $queueUrl: String!) {
-        deleteSqsQueue(region: $region, queueUrl: $queueUrl)
+      mutation DeleteSqsQueue($region: String!, $id: String!) {
+        deleteSqsQueue(region: $region, id: $id)
       }
     `,
     responseKey: "deleteSqsQueue",
@@ -59,7 +59,6 @@ const sqsResourceOperations: GraphQLResourceOperations = {
         }
       }
     `,
-    responseKey: "sqsQueues",
   },
   update: {
     mutation: gql`

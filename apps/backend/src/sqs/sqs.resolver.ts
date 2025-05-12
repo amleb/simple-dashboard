@@ -40,15 +40,15 @@ export class SqsResolver {
   async updateSqsQueue(
     @Args('region') region: string,
     @Args('input') input: UpdateSqsQueueInput,
-  ): Promise<SqsQueue> {
+  ): Promise<{ id: string }> {
     return this.sqsService.updateQueue(region, input);
   }
 
   @Mutation(() => Boolean)
   async deleteSqsQueue(
     @Args('region') region: string,
-    @Args('queueUrl') queueUrl: string,
+    @Args('id') id: string,
   ): Promise<boolean> {
-    return this.sqsService.deleteQueue(region, queueUrl);
+    return this.sqsService.deleteQueue(region, id);
   }
 }
