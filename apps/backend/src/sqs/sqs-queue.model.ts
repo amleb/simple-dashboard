@@ -65,23 +65,23 @@ export class QueueAttributesInput {
 
 @ObjectType()
 export class QueueAttributes2 {
-  @Field(() => String, { nullable: true })
-  ApproximateNumberOfMessages?: string;
-
-  @Field(() => String, { nullable: true })
-  ApproximateNumberOfMessagesNotVisible?: string;
-
-  @Field(() => String, { nullable: true })
-  ApproximateNumberOfMessagesDelayed?: string;
-
-  @Field(() => String, { nullable: true })
-  CreatedTimestamp?: string;
+  // @Field(() => String, { nullable: true })
+  // ApproximateNumberOfMessages?: string;
+  //
+  // @Field(() => String, { nullable: true })
+  // ApproximateNumberOfMessagesNotVisible?: string;
+  //
+  // @Field(() => String, { nullable: true })
+  // ApproximateNumberOfMessagesDelayed?: string;
+  //
+  // @Field(() => String, { nullable: true })
+  // CreatedTimestamp?: string;
 
   @Field(() => String, { nullable: true })
   DelaySeconds?: string;
-
-  @Field(() => String, { nullable: true })
-  LastModifiedTimestamp?: string;
+  //
+  // @Field(() => String, { nullable: true })
+  // LastModifiedTimestamp?: string;
 
   @Field(() => String, { nullable: true })
   MaximumMessageSize?: string;
@@ -89,8 +89,29 @@ export class QueueAttributes2 {
   @Field(() => String, { nullable: true })
   MessageRetentionPeriod?: string;
 
+  // @Field(() => String, { nullable: true })
+  // QueueArn?: string;
+
   @Field(() => String, { nullable: true })
-  QueueArn?: string;
+  ReceiveMessageWaitTimeSeconds?: string;
+
+  @Field(() => String, { nullable: true })
+  VisibilityTimeout?: string;
+
+  @Field(() => String, { nullable: true })
+  SqsManagedSseEnabled?: string;
+}
+
+@InputType()
+export class QueueAttributesUpdate {
+  @Field(() => String, { nullable: true })
+  DelaySeconds?: string;
+
+  @Field(() => String, { nullable: true })
+  MaximumMessageSize?: string;
+
+  @Field(() => String, { nullable: true })
+  MessageRetentionPeriod?: string;
 
   @Field(() => String, { nullable: true })
   ReceiveMessageWaitTimeSeconds?: string;
@@ -141,7 +162,9 @@ export class UpdateSqsQueueInput {
   id: string;
   @Field()
   name?: string;
-  @Field(() => QueueAttributesInput, { nullable: true })
-  attributes: QueueAttributesInput;
+  @Field()
+  type?: string;
+  @Field(() => QueueAttributesUpdate, { nullable: false })
+  attributes: QueueAttributesUpdate;
   @Field(() => [TagInput], { nullable: true }) tags?: TagInput[];
 }

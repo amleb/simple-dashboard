@@ -33,7 +33,7 @@ export class SqsService {
     const queues: SqsQueue[] = [];
 
     for (const url of QueueUrls) {
-      const queue = await this.getQueueAttributes(client, url, region);
+      const queue = await this.getQueueAttributesForList(client, url, region);
       queues.push(queue);
     }
 
@@ -91,7 +91,7 @@ export class SqsService {
   async updateQueue(
     region: string,
     input: UpdateSqsQueueInput,
-  ): Promise<SqsQueue> {
+  ): Promise<{ id: string }> {
     const client = new SQSClient(this.optionsFactory.createOptions(region));
     const { id } = input;
 
@@ -104,7 +104,6 @@ export class SqsService {
 
     return {
       id,
-      region,
     };
   }
 
@@ -131,7 +130,7 @@ export class SqsService {
     return flattened;
   }
 
-  async getQueueAttributes(
+  async getQueueAttributesForList(
     client: SQSClient,
     url: string,
     region: string,

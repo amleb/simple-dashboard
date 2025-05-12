@@ -30,6 +30,7 @@ const EditSqsQueue = () => {
   const [isFifo] = useState(false);
 
   const handleOnFinish = async (values: FieldValues) => {
+    values.id = id;
     values["attributes.MaximumMessageSize"] =
       values["attributes.MaximumMessageSize"] * 1024;
     await onFinish(expandObjectKeys(convertTimeUnitFieldsToSeconds(values)));

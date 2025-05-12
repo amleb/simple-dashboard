@@ -217,10 +217,18 @@ export const graphqlDataProvider = (client: Client): DataProvider => ({
     variables: TVariables;
     meta?: MetaQuery;
   }): Promise<UpdateResponse<TData>> => {
-    console.log(resource);
-    console.log(variables);
-    console.log(meta);
-    throw new Error("update not implemented");
+    validateResourceName(resource);
+
+    const { query, responseKey } = findGraphQl(resource, "update", meta);
+
+    const result = await executeGraphQLMutation<TData>(client, query, {
+      region: meta?.region,
+      input: variables,
+    });
+
+    return {
+      data: result.data?.[responseKey],
+    };
   },
 
   getApiUrl: () => "",

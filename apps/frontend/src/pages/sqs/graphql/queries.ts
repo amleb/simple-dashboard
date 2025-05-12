@@ -1,34 +1,6 @@
 import gql from "graphql-tag";
 import { GraphQLResourceOperations } from "../../../lib/graphQlTypes";
 
-
-// export const UPDATE_SQS_QUEUE = {
-//   mutation: `
-//     mutation UpdateSqsQueue($region: String!, $queueUrl: String!, $input: UpdateSqsQueueInput!) {
-//       updateSqsQueue(region: $region, queueUrl: $queueUrl, input: $input) {
-//         id
-//         name
-//         region
-//         fifoQueue
-//         visibilityTimeout
-//         messageRetentionPeriod
-//         delaySeconds
-//         maximumMessageSize
-//         receiveMessageWaitTimeSeconds
-//         contentBasedDeduplication
-//         deduplicationScope
-//         fifoThroughputLimit
-//         kmsMasterKeyId
-//         redrivePolicy
-//         redriveAllowPolicy
-//         sqsManagedSseEnabled
-//         policy
-//       }
-//     }
-//   `,
-// };
-
-
 const sqsResourceOperations: GraphQLResourceOperations = {
   create: {
     mutation: gql`
@@ -59,15 +31,9 @@ const sqsResourceOperations: GraphQLResourceOperations = {
           type
           region
           attributes {
-            ApproximateNumberOfMessages
-            ApproximateNumberOfMessagesNotVisible
-            ApproximateNumberOfMessagesDelayed
-            CreatedTimestamp
             DelaySeconds
-            LastModifiedTimestamp
             MaximumMessageSize
             MessageRetentionPeriod
-            QueueArn
             ReceiveMessageWaitTimeSeconds
             VisibilityTimeout
             SqsManagedSseEnabled
@@ -95,6 +61,16 @@ const sqsResourceOperations: GraphQLResourceOperations = {
     `,
     responseKey: "sqsQueues",
   },
+  update: {
+    mutation: gql`
+    mutation UpdateSqsQueue($region: String!, $input: UpdateSqsQueueInput!) {
+      updateSqsQueue(region: $region, input: $input) {
+        id
+      }
+    }
+  `,
+    responseKey: "updateSqsQueue"
+  }
 };
 
 export default sqsResourceOperations;
